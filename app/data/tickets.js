@@ -14,7 +14,6 @@ const ensureDataDir = () => {
   }
   
   if (!fs.existsSync(dataFilePath)) {
-    // Initialize with 200 tickets
     const initialTickets = Array.from({ length: 200 }, (_, index) => ({
       id: uuidv4(),
       number: index + 1,
