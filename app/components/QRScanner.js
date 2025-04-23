@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 
 export default function QRScanner({ onScanSuccess, onScanFailure }) {
@@ -20,12 +20,12 @@ export default function QRScanner({ onScanSuccess, onScanFailure }) {
     };
   }, []);
   
-  const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+  const qrCodeSuccessCallback = useCallback((decodedText, decodedResult) => {
     if (!mountedRef.current) return;
     onScanSuccess(decodedText);
-  };
+  }, [onScanSuccess]);
 
-  const startScanner = () => {
+  const startScanner = useCallback(() => {
     if (!mountedRef.current) return;
     if (scannerInitializedRef.current) return;
     
@@ -70,10 +70,10 @@ export default function QRScanner({ onScanSuccess, onScanFailure }) {
       setIsScanning(false);
       scannerInitializedRef.current = false;
     }
-  };
+  }, [onScanFailure, qrCodeSuccessCallback]);
 
   // Ensure scanner is fully stopped before restarting
-  const ensureScanner = async () => {
+  const ensureScanner = useCallback(async () => {
     try {
       if (scannerRef.current && scannerInitializedRef.current) {
         await scannerRef.current.stop();
@@ -84,9 +84,9 @@ export default function QRScanner({ onScanSuccess, onScanFailure }) {
       scannerRef.current = null;
       scannerInitializedRef.current = false;
     }
-  };
+  }, []);
 
-  const stopScanner = async () => {
+  const stopScanner = useCallback(async () => {
     if (!mountedRef.current) return;
     
     try {
@@ -102,7 +102,7 @@ export default function QRScanner({ onScanSuccess, onScanFailure }) {
       scannerRef.current = null;
       scannerInitializedRef.current = false;
     }
-  };
+  }, []);
 
   // Initialize scanner once on mount
   useEffect(() => {
@@ -122,9 +122,9 @@ export default function QRScanner({ onScanSuccess, onScanFailure }) {
     return () => {
       stopScanner();
     };
-  }, []);
+  }, [ensureScanner, startScanner, stopScanner]);
 
-  const restartScanner = async () => {
+  const restartScanner = useCallback(async () => {
     await stopScanner();
     
     // Wait to ensure everything is cleaned up
@@ -133,7 +133,7 @@ export default function QRScanner({ onScanSuccess, onScanFailure }) {
         startScanner();
       }
     }, 1000);
-  };
+  }, [startScanner, stopScanner]);
 
   return (
     <div className="flex flex-col items-center">

@@ -3,15 +3,15 @@ import { getTicketById, updateTicketScanStatus } from '../../../../data/tickets'
 
 export async function POST(request, { params }) {
   try {
-    const id = params.id;
+    const id = await params.id;
     
     // Get the ticket
     const ticket = await getTicketById(id);
-    
+    console.log('ticket', ticket);
     // If ticket doesn't exist
     if (!ticket) {
       return NextResponse.json(
-        { success: false, message: 'Invalid ticket', ticket: null },
+        { success: false, message: 'Invalid ticket', ticket: null, state : "invalid" },
         { status: 404 }
       );
     }
@@ -30,7 +30,8 @@ export async function POST(request, { params }) {
         success: false,
         message: 'Ticket already scanned',
         ticket,
-        alreadyScanned: true
+        alreadyScanned: true,
+        state : "already-scanned"
       });
     }
     
@@ -40,7 +41,8 @@ export async function POST(request, { params }) {
     return NextResponse.json({
       success: true,
       message: 'Ticket verified successfully',
-      ticket: updatedTicket
+      ticket: updatedTicket,
+      state: "valid"
     });
   } catch (error) {
     console.error('Error verifying ticket:', error);

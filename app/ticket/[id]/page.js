@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { getTicketById } from '../../data/tickets';
 import { Download, ArrowLeft } from 'lucide-react';
 
@@ -45,9 +46,11 @@ export default async function TicketPage({ params }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="flex flex-col items-center">
                 <div className="mb-4 bg-white p-4 rounded-lg border border-zinc-700/50">
-                  <img 
+                  <Image 
                     src={`/api/qr/ticket/${ticket.id}`}
                     alt={`QR Code for Ticket #${ticket.number}`}
+                    width={256}
+                    height={256}
                     className="w-64 h-64"
                   />
                 </div>

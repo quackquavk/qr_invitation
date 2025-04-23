@@ -65,7 +65,7 @@ export default async function TicketDownloadPage() {
             </div>
             
             <p>
-              For individual ticket downloads, you can visit each ticket's detail page or use the download icon in the tickets table.
+              For individual ticket downloads, you can visit each ticket&apos;s detail page or use the download icon in the tickets table.
             </p>
           </div>
         </div>

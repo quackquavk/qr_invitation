@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { getInvitation } from '../../data/invitations';
 
 export const dynamic = 'force-dynamic';
@@ -15,7 +16,7 @@ export default async function ShareInvitationPage({ params }) {
     <div className="container min-h-screen mx-auto flex flex-col items-center justify-center p-4">
       <div className="max-w-md w-full bg-white rounded-lg shadow-md overflow-hidden">
         <div className="bg-blue-600 p-4 text-white text-center">
-          <h1 className="text-xl font-bold">You're Invited!</h1>
+          <h1 className="text-xl font-bold">You&apos;re Invited!</h1>
         </div>
         
         <div className="p-6 flex flex-col items-center">
@@ -24,15 +25,17 @@ export default async function ShareInvitationPage({ params }) {
               Hello, {invitation.name}!
             </p>
             <p className="text-gray-600">
-              Here's your personal invitation QR code
+              Here&apos;s your personal invitation QR code
             </p>
           </div>
           
           <div className="mb-6 p-2 border-2 border-gray-200 rounded-lg bg-white">
             {/* QR Code Server Component */}
-            <img 
+            <Image 
               src={`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/qr/${invitation.id}`}
               alt="Invitation QR Code"
+              width={256}
+              height={256}
               className="w-64 h-64"
             />
           </div>

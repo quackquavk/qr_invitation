@@ -3,7 +3,7 @@ import { getInvitation, updateInvitationScanStatus } from '../../../data/invitat
 
 export async function POST(request, { params }) {
   try {
-    const id = params.id;
+    const id = await params.id;
     
     // Get the invitation
     const invitation = await getInvitation(id);
@@ -15,7 +15,7 @@ export async function POST(request, { params }) {
         { status: 404 }
       );
     }
-    
+    console.log('invitation', invitation);
     // Check if already scanned
     if (invitation.scanned) {
       return NextResponse.json({

@@ -4,8 +4,8 @@ import QRCode from 'qrcode';
 
 export async function GET(request, { params }) {
   try {
-    // Get ticket data
-    const ticket = await getTicketById(params.id);
+    const paramId= await  params.id;
+    const ticket = await getTicketById(paramId);
     
     if (!ticket) {
       return new NextResponse(null, { status: 404 });

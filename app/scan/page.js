@@ -45,7 +45,6 @@ export default function ScanPage() {
       
       const verifyEndpoint = `/api/verify/ticket/${id}`;
       
-      console.log('Verifying ticket:', id);
       const response = await fetch(verifyEndpoint, {
         method: 'POST',
       });
@@ -56,13 +55,12 @@ export default function ScanPage() {
       }
       
       const data = await response.json();
-      console.log('Verification result:', data);
       
       // Display the result and stop scanning
       setScanning(false);
       setScanResult({
-        status: "valid",
-        data: data.item
+        status: data.state,
+        data: data.message
       });
     } catch (error) {
       console.error('Scan Error:', error);
@@ -97,9 +95,9 @@ export default function ScanPage() {
     setKey(prevKey => prevKey + 1);
     isProcessingRef.current = false;
   }, []);
-console.log(scanResult)
+console.log(scanResult , 'scanResult')
   return (
-    <div className="container mx-auto max-w-lg px-4 py-8">
+    <div className="container mx-auto max-w-lg px-4 py-8 text-black">
       <h1 className="text-2xl font-bold mb-6 text-center">Scan Ticket QR Code</h1>
       
       {!scanning && !scanResult && error && (

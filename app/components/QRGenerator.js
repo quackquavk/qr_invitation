@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import QRCode from 'qrcode';
+import Image from 'next/image';
 import DownloadQR from './DownloadQR';
 import ShareQRCode from './ShareQRCode';
 
@@ -52,12 +53,15 @@ export default function QRGenerator({ invitationId, invitationData }) {
   return (
     <div className="flex flex-col items-center">
       <div className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm">
-        <img 
-          ref={qrImageRef}
-          src={qrDataUrl} 
-          alt="Invitation QR Code" 
-          className="w-64 h-64" 
-        />
+        <div ref={qrImageRef}>
+          <Image 
+            src={qrDataUrl} 
+            alt="Invitation QR Code" 
+            width={256}
+            height={256}
+            className="w-64 h-64" 
+          />
+        </div>
       </div>
       <div className="mt-4 text-sm text-gray-600 text-center">
         Scan this QR code at the event entrance
