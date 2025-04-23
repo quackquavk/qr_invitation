@@ -10,18 +10,19 @@ export default function ScanResult({ status, data, type = 'invitation', onScanAg
   }, [status]);
 
   const playStatusSound = (status) => {
-    try {
-      if (typeof window !== 'undefined' && window.Audio) {
-        const audio = new Audio(
-          status === 'valid' ? '/sounds/success.mp3' :
-          status === 'already-scanned' ? '/sounds/warning.mp3' :
-          '/sounds/error.mp3'
-        );
-        audio.play().catch(e => console.log('Audio playback error:', e));
-      }
-    } catch (error) {
-      console.log('Sound playback not supported');
-    }
+    return
+    // try {
+    //   if (typeof window !== 'undefined' && window.Audio) {
+    //     const audio = new Audio(
+    //       status === 'valid' ? '/sounds/success.mp3' :
+    //       status === 'already-scanned' ? '/sounds/warning.mp3' :
+    //       '/sounds/error.mp3'
+    //     );
+    //     audio.play().catch(e => console.log('Audio playback error:', e));
+    //   }
+    // } catch (error) {
+    //   console.log('Sound playback not supported');
+    // }
   };
 
   // Render appropriate icon based on status

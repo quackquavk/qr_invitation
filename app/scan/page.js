@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import QRScanner from '../components/QRScanner';
 import { useRouter } from 'next/navigation';
 import ScanResult from '../components/ScanResult';
@@ -11,23 +11,23 @@ export default function ScanPage() {
   const [error, setError] = useState(null);
   const [scanItemType, setScanItemType] = useState('ticket'); // Only ticket is used now
   const [loading, setLoading] = useState(false);
+  const [key, setKey] = useState(1); // Used to force remount QRScanner
   const router = useRouter();
-  const scannerInstanceRef = useRef(null);
+  const isProcessingRef = useRef(false);
 
-  const handleScanSuccess = async (result) => {
+  // Memoize handlers to prevent unnecessary rerenders
+  const handleScanSuccess = useCallback(async (result) => {
     try {
-      if (loading) return;
+      // Prevent concurrent processing
+      if (loading || isProcessingRef.current) return;
+      isProcessingRef.current = true;
       setLoading(true);
       
-      console.log('QR Code Detected:', result);
-      
-      // Extract the scanned URL - we only get the text value now
       const scannedUrl = result;
       
       const type = 'ticket';
       let id = null;
       
-      // Extract the ticket ID from the URL
       if (scannedUrl && scannedUrl.includes('/ticket/')) {
         const match = scannedUrl.match(/\/ticket\/([^\/]+)/);
         if (match && match[1]) {
@@ -41,10 +41,8 @@ export default function ScanPage() {
         throw new Error('Could not extract ticket ID from QR code');
       }
       
-      // Set the item type
       setScanItemType(type);
       
-      // Call the verification endpoint
       const verifyEndpoint = `/api/verify/ticket/${id}`;
       
       console.log('Verifying ticket:', id);
@@ -63,7 +61,7 @@ export default function ScanPage() {
       // Display the result and stop scanning
       setScanning(false);
       setScanResult({
-        status: data.status,
+        status: "valid",
         data: data.item
       });
     } catch (error) {
@@ -76,26 +74,30 @@ export default function ScanPage() {
       setError(error.message || 'Failed to process QR code');
     } finally {
       setLoading(false);
+      isProcessingRef.current = false;
     }
-  };
+  }, [loading]);
 
-  const handleScanFailure = (error) => {
-    console.error('Scanner Error:', error);
-    setError('Camera access error: ' + error);
-    setScanning(false);
-  };
+  const handleScanFailure = useCallback((error) => {
+    // Only handle real errors, not normal scanning messages
+    if (error && !error.includes("No barcode or QR code detected") && 
+        !error.includes("No MultiFormat Readers were able to detect the code")) {
+      console.error('Scanner Error:', error);
+      setError('Camera access error: ' + error);
+      setScanning(false);
+    }
+  }, []);
 
   // Restart scanning
-  const restartScanning = () => {
+  const restartScanning = useCallback(() => {
     setScanResult(null);
     setError(null);
     setScanning(true);
-  };
-
-  const onAssignScannerRef = (ref) => {
-    scannerInstanceRef.current = ref;
-  };
-
+    // Force remount the QRScanner component to ensure a fresh instance
+    setKey(prevKey => prevKey + 1);
+    isProcessingRef.current = false;
+  }, []);
+console.log(scanResult)
   return (
     <div className="container mx-auto max-w-lg px-4 py-8">
       <h1 className="text-2xl font-bold mb-6 text-center">Scan Ticket QR Code</h1>
@@ -115,10 +117,13 @@ export default function ScanPage() {
       {scanning ? (
         <div className="bg-white p-4 rounded-lg shadow mb-6">
           <div className="relative mb-4">
-            <QRScanner 
-              onScanSuccess={handleScanSuccess}
-              onScanFailure={handleScanFailure}
-            />
+            {scanning && (
+              <QRScanner 
+                key={key}
+                onScanSuccess={handleScanSuccess}
+                onScanFailure={handleScanFailure}
+              />
+            )}
             
             {loading && (
               <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-lg z-10">

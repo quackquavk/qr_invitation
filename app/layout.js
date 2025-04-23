@@ -23,7 +23,6 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-100 min-h-screen`}
       >
-        <Navbar />
         <main className="pt-4">{children}</main>
       </body>
     </html>

@@ -16,13 +16,13 @@ export async function POST(request, { params }) {
       );
     }
     
-    // If ticket is not sold
-    if (!ticket.sold) {
-      return NextResponse.json(
-        { success: false, message: 'Ticket has not been sold', ticket, isSold: false },
-        { status: 400 }
-      );
-    }
+    // // If ticket is not sold
+    // if (!ticket.sold) {
+    //   return NextResponse.json(
+    //     { success: false, message: 'Ticket has not been sold', ticket, isSold: false },
+    //     { status: 400 }
+    //   );
+    // }
     
     // Check if already scanned
     if (ticket.scanned) {

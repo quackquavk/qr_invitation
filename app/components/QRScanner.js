@@ -8,18 +8,31 @@ export default function QRScanner({ onScanSuccess, onScanFailure }) {
   const [error, setError] = useState(null);
   const scannerRef = useRef(null);
   const scannerInitializedRef = useRef(false);
+  const hasInitializedRef = useRef(false);
+  const mountedRef = useRef(true);
+  
+  // Reset state when component mounts
+  useEffect(() => {
+    mountedRef.current = true;
+    
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
   
   const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+    if (!mountedRef.current) return;
     onScanSuccess(decodedText);
   };
 
   const startScanner = () => {
+    if (!mountedRef.current) return;
     if (scannerInitializedRef.current) return;
     
-    setError(null);
-    setIsScanning(true);
-
     try {
+      setError(null);
+      setIsScanning(true);
+
       const html5QrcodeScanner = new Html5Qrcode('qr-reader');
       scannerRef.current = html5QrcodeScanner;
       scannerInitializedRef.current = true;
@@ -29,61 +42,97 @@ export default function QRScanner({ onScanSuccess, onScanFailure }) {
         { fps: 10, qrbox: 250 },
         qrCodeSuccessCallback,
         (errorMessage) => {
-          // This is just for errors during scanning, not when a QR code can't be found
-          console.error(errorMessage);
+          if (!mountedRef.current) return;
+          
+          if (errorMessage.includes("No barcode or QR code detected") || 
+              errorMessage.includes("No MultiFormat Readers were able to detect the code")) {
+            return;
+          }
+          
+          if (onScanFailure) {
+            onScanFailure(errorMessage);
+          }
         }
       ).catch(err => {
-        setError('Failed to start scanner: ' + err);
-        setIsScanning(false);
-        scannerInitializedRef.current = false;
+        if (!mountedRef.current) return;
+        
+        if (!err.toString().includes("No barcode or QR code detected") && 
+            !err.toString().includes("No MultiFormat Readers were able to detect the code")) {
+          setError('Failed to start scanner: ' + err);
+          setIsScanning(false);
+          scannerInitializedRef.current = false;
+        }
       });
     } catch (err) {
-      console.error('Error initializing scanner:', err);
+      if (!mountedRef.current) return;
+      
       setError('Failed to initialize scanner: ' + err);
       setIsScanning(false);
       scannerInitializedRef.current = false;
     }
   };
 
-  const stopScanner = () => {
-    if (scannerRef.current && scannerInitializedRef.current) {
-      console.log('Stopping scanner...');
-      scannerRef.current.stop().then(() => {
-        console.log('Scanner stopped successfully');
+  // Ensure scanner is fully stopped before restarting
+  const ensureScanner = async () => {
+    try {
+      if (scannerRef.current && scannerInitializedRef.current) {
+        await scannerRef.current.stop();
+      }
+    } catch (err) {
+      console.log("Error during scanner cleanup:", err);
+    } finally {
+      scannerRef.current = null;
+      scannerInitializedRef.current = false;
+    }
+  };
+
+  const stopScanner = async () => {
+    if (!mountedRef.current) return;
+    
+    try {
+      if (scannerRef.current && scannerInitializedRef.current) {
+        await scannerRef.current.stop();
+      }
+    } catch (err) {
+      console.log("Error stopping scanner:", err);
+    } finally {
+      if (mountedRef.current) {
         setIsScanning(false);
-        scannerInitializedRef.current = false;
-      }).catch(err => {
-        console.error('Failed to stop scanner:', err);
-      });
+      }
+      scannerRef.current = null;
+      scannerInitializedRef.current = false;
     }
   };
 
   // Initialize scanner once on mount
   useEffect(() => {
-    console.log('Initializing scanner...');
-    if (!scannerInitializedRef.current) {
-      startScanner();
+    // Only initialize once to prevent loops
+    if (!hasInitializedRef.current) {
+      hasInitializedRef.current = true;
+      
+      // Reset any previous scanner instance first
+      ensureScanner().then(() => {
+        if (mountedRef.current) {
+          startScanner();
+        }
+      });
     }
     
     // Clean up on component unmount
     return () => {
-      console.log('Cleaning up scanner...');
-      if (scannerRef.current) {
-        scannerRef.current.stop().catch(err => {
-          console.error('Failed to stop scanner on unmount:', err);
-        });
-        scannerInitializedRef.current = false;
-      }
+      stopScanner();
     };
   }, []);
 
-  const restartScanner = () => {
-    stopScanner();
-    // Short delay to ensure previous instance is fully stopped
+  const restartScanner = async () => {
+    await stopScanner();
+    
+    // Wait to ensure everything is cleaned up
     setTimeout(() => {
-      scannerInitializedRef.current = false;
-      startScanner();
-    }, 500);
+      if (mountedRef.current) {
+        startScanner();
+      }
+    }, 1000);
   };
 
   return (

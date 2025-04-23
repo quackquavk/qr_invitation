@@ -9,12 +9,10 @@ export default function TicketVerificationResult({ status }) {
   
   useEffect(() => {
     const processVerification = async () => {
-      // Only process if it's a valid ticket that hasn't been scanned yet
       if (status.success && status.status === 'valid') {
         setLoading(true);
         
         try {
-          // Call the verification API to mark the ticket as scanned
           const response = await fetch(`/api/verify/ticket/${status.ticket.id}`, {
             method: 'POST',
             headers: {
@@ -24,18 +22,14 @@ export default function TicketVerificationResult({ status }) {
           
           const data = await response.json();
           
-          if (response.ok) {
-            // Update the status with the response data
+          if (response.success) {
             setVerificationStatus({
               ...status,
               message: 'Ticket successfully verified and marked as scanned.',
               ticket: data.ticket
             });
             
-            // Play success sound
-            playSound('success');
           } else {
-            // Handle errors
             if (data.alreadyScanned) {
               setVerificationStatus({
                 success: false,
@@ -43,7 +37,6 @@ export default function TicketVerificationResult({ status }) {
                 status: 'already-scanned',
                 ticket: data.ticket
               });
-              playSound('warning');
             } else if (data.isSold === false) {
               setVerificationStatus({
                 success: false,
@@ -51,7 +44,6 @@ export default function TicketVerificationResult({ status }) {
                 status: 'not-sold',
                 ticket: data.ticket
               });
-              playSound('error');
             } else {
               setVerificationStatus({
                 success: false,
@@ -59,7 +51,6 @@ export default function TicketVerificationResult({ status }) {
                 status: 'error',
                 ticket: data.ticket
               });
-              playSound('error');
             }
           }
         } catch (error) {
@@ -87,18 +78,19 @@ export default function TicketVerificationResult({ status }) {
   }, [status]);
   
   const playSound = (type) => {
-    try {
-      if (typeof window !== 'undefined' && window.Audio) {
-        const audio = new Audio(
-          type === 'success' ? '/sounds/success.mp3' :
-          type === 'warning' ? '/sounds/warning.mp3' :
-          '/sounds/error.mp3'
-        );
-        audio.play().catch(e => console.log('Audio playback failed:', e));
-      }
-    } catch (error) {
-      console.log('Sound playback not supported');
-    }
+    return
+    // try {
+    //   if (typeof window !== 'undefined' && window.Audio) {
+    //     const audio = new Audio(
+    //       type === 'success' ? '/sounds/success.mp3' :
+    //       type === 'warning' ? '/sounds/warning.mp3' :
+    //       '/sounds/error.mp3'
+    //     );
+    //     audio.play().catch(e => console.log('Audio playback failed:', e));
+    //   }
+    // } catch (error) {
+    //   console.log('Sound playback not supported');
+    // }
   };
   
   const getStatusIcon = () => {
@@ -129,6 +121,7 @@ export default function TicketVerificationResult({ status }) {
   };
   
   const getStatusTitle = () => {
+
     switch (verificationStatus.status) {
       case 'valid':
         return 'Valid Ticket';
