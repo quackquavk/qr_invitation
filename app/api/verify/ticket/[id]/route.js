@@ -3,7 +3,8 @@ import { getTicketById, updateTicketScanStatus } from '../../../../data/tickets'
 
 export async function POST(request, { params }) {
   try {
-    const id = await params.id;
+    const param = await params
+    const id = await param.id;
     
     // Get the ticket
     const ticket = await getTicketById(id);

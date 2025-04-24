@@ -1,10 +1,30 @@
-// function.js
-
+const fs = require('fs');
+const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 
-const initialTickets = Array.from({ length: 150 }, (_, index) => ({
+// Define the path to your JSON file
+const filePath = path.join(__dirname, 'app', 'data', 'tickets.json');
+
+// Read existing data
+let existingTickets = [];
+if (fs.existsSync(filePath)) {
+  const fileContent = fs.readFileSync(filePath, 'utf-8');
+  try {
+    existingTickets = JSON.parse(fileContent);
+  } catch (e) {
+    console.error('Invalid JSON in tickets.json:', e.message);
+    process.exit(1);
+  }
+}
+
+const lastNumber = existingTickets.length
+  ? Math.max(...existingTickets.map(t => t.number))
+  : 200;
+
+// Generate 150 new tickets
+const newTickets = Array.from({ length: 150 }, (_, index) => ({
   id: uuidv4(),
-  number: index + 201,
+  number: lastNumber + index + 1,
   sold: false,
   scanned: false,
   scannedAt: null,
@@ -14,4 +34,8 @@ const initialTickets = Array.from({ length: 150 }, (_, index) => ({
   createdAt: new Date().toISOString()
 }));
 
-console.log(JSON.stringify(initialTickets, null, 2));
+// Combine and write back
+const updatedTickets = [...existingTickets, ...newTickets];
+
+fs.writeFileSync(filePath, JSON.stringify(updatedTickets, null, 2));
+

@@ -55,12 +55,11 @@ export default function ScanPage() {
       }
       
       const data = await response.json();
-      
       // Display the result and stop scanning
       setScanning(false);
       setScanResult({
         status: data.state,
-        data: data.message
+        data: data.ticket
       });
     } catch (error) {
       console.error('Scan Error:', error);
@@ -95,7 +94,6 @@ export default function ScanPage() {
     setKey(prevKey => prevKey + 1);
     isProcessingRef.current = false;
   }, []);
-console.log(scanResult , 'scanResult')
   return (
     <div className="container mx-auto max-w-lg px-4 py-8 text-black">
       <h1 className="text-2xl font-bold mb-6 text-center">Scan Ticket QR Code</h1>
