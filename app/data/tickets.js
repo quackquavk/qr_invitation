@@ -141,4 +141,31 @@ export async function initializeTickets() {
   
   fs.writeFileSync(dataFilePath, JSON.stringify(initialTickets, null, 2));
   return initialTickets;
+}
+
+// Add new tickets
+export async function addTickets(numTickets) {
+  if (!Number.isInteger(numTickets) || numTickets <= 0) {
+    throw new Error('Number of tickets must be a positive integer');
+  }
+  
+  const tickets = await getAllTickets();
+  const maxTicketNumber = Math.max(...tickets.map(ticket => ticket.number), 0);
+  
+  const newTickets = Array.from({ length: numTickets }, (_, index) => ({
+    id: uuidv4(),
+    number: maxTicketNumber + index + 1,
+    sold: false,
+    scanned: false,
+    scannedAt: null,
+    soldAt: null,
+    buyerName: null,
+    buyerEmail: null,
+    createdAt: new Date().toISOString()
+  }));
+  
+  const updatedTickets = [...tickets, ...newTickets];
+  fs.writeFileSync(dataFilePath, JSON.stringify(updatedTickets, null, 2));
+  
+  return newTickets;
 } 

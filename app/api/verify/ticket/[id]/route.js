@@ -25,7 +25,6 @@ export async function POST(request, { params }) {
     //   );
     // }
     
-    // Check if already scanned
     if (ticket.scanned) {
       return NextResponse.json({
         success: false,
